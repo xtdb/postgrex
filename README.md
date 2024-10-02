@@ -26,6 +26,15 @@ iex> Postgrex.query!(pid, "INSERT INTO comments (user_id, text) VALUES (10, 'hey
   * Supports transactions, prepared queries and multiple pools via [DBConnection](https://github.com/elixir-ecto/db_connection)
   * Supports PostgreSQL 8.4, 9.0-9.6, and later (hstore is not supported on 8.4)
 
+## XTDB support
+
+Given that currently XTDB does not suppport _all_ tables from the information_schema - you should pass additional `flavour` argument with value of "xtdb" to the `Postgrex.start_link/1`:
+
+```iex
+iex> {:ok, pid} = Postgrex.start_link(hostname: "localhost", username: "xtdb", password: "secret", database: "xtdb", flavour: "xtdb")
+{:ok, #PID<0.71.0>}
+```
+
 ## Data representation
 
 | PostgreSQL         | Elixir                                                                                                                                      |

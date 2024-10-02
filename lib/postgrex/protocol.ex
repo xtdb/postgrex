@@ -33,7 +33,8 @@ defmodule Postgrex.Protocol do
             disconnect_on_error_codes: [],
             scram: nil,
             disable_composite_types: false,
-            messages: []
+            messages: [],
+            flavour: nil
 
   @type state :: %__MODULE__{
           sock: {module, any},
@@ -50,7 +51,8 @@ defmodule Postgrex.Protocol do
           transactions: :strict | :naive,
           buffer: nil | binary | :active_once,
           disconnect_on_error_codes: [atom()],
-          scram: %{atom => binary}
+          scram: %{atom => binary},
+          flavour: nil | String.t()
         }
 
   @type notify :: (binary, binary -> any)
@@ -122,7 +124,8 @@ defmodule Postgrex.Protocol do
       postgres: :idle,
       transactions: transactions,
       disconnect_on_error_codes: disconnect_on_error_codes,
-      disable_composite_types: disable_composite_types
+      disable_composite_types: disable_composite_types,
+      flavour: opts[:flavour]
     }
 
     connect_timeout = Keyword.get(opts, :connect_timeout, timeout)

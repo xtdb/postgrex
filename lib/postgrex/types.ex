@@ -45,22 +45,31 @@ defmodule Postgrex.Types do
   @doc false
   @spec bootstrap_query({pos_integer, non_neg_integer, non_neg_integer}, state) :: binary | nil
   def bootstrap_query(version, %{types: {_, table}} = s) do
-    case :ets.info(table, :size) do
-      0 ->
-        # avoid loading information about table-types
-        # since there might be a lot them and most likely
-        # they won't be used; subsequent bootstrap will
-        # fetch them along with any other "new" types
-        filter_oids = """
-        WHERE (t.typrelid = 0)
-        AND (t.typelem = 0 OR NOT EXISTS (SELECT 1 FROM pg_catalog.pg_type s WHERE s.typrelid != 0 AND s.oid = t.typelem))
-        """
+    if s.flavour == "xtdb" do
+      build_xtdb_bootstrap_query(version, s)
+    else
+      case :ets.info(table, :size) do
+        0 ->
+          # avoid loading information about table-types
+          # since there might be a lot them and most likely
+          # they won't be used; subsequent bootstrap will
+          # fetch them along with any other "new" types
+          filter_oids = """
+          WHERE (t.typrelid = 0)
+          AND (t.typelem = 0 OR NOT EXISTS (SELECT 1 FROM pg_catalog.pg_type s WHERE s.typrelid != 0 AND s.oid = t.typelem))
+          """
 
-        build_bootstrap_query(version, filter_oids, s)
+          build_bootstrap_query(version, filter_oids, s)
 
-      _ ->
-        nil
+        _ ->
+          nil
+      end
     end
+  end
+
+  defp build_xtdb_bootstrap_query(_version, _s) do
+    # XTDB does not have all the pg_catalog tables and only few types
+    "select oid, typname, typsend, typreceive,'','', 0, 0, null from pg_type"
   end
 
   defp build_bootstrap_query(version, filter_oids, s) do
